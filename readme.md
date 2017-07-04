@@ -2,10 +2,10 @@
 
 <br /><img alt="route-one" title="route-one" src="http://storage3.static.itmages.com/i/17/0704/h_1499201379_3971410_182da2e922.png"><br /><br />
 
-**The project is in the beta stage.**
+**The package is in the beta stage.**
 
 `route-one` is a [PSR-15](https://github.com/http-interop/http-middleware) compatible middleware aimed to 
-flexibly route a request to another middleware based on request url path, host, http method, etc. 
+flexibly route a request to another middleware based on HTTP request url path, host, http method, etc. 
 It is built on top of [Middleman](https://github.com/mindplay-dk/middleman) and [Aura.Router](https://github.com/auraphp/Aura.Router) packages.
 It's a good addition to your favorite middleware dispatcher to feel it more likely classical request router.
 This package also contains a middleware dispatcher that has bunch of useful methods for easy creating route middleware instances.
@@ -15,6 +15,10 @@ This package also contains a middleware dispatcher that has bunch of useful meth
 - Allows to build multi-dimensional routes and modify response from a group of middleware.
 - It makes your code highly reusable. Any part of the web resource can be bundled as a separate packaged middleware and used 
 in other projects.
+
+## Installation
+ 
+`composer require idealogica/route-one:~0.1.0`
  
 ## General usage
  
