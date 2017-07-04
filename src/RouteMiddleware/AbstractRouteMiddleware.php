@@ -2,7 +2,7 @@
 namespace Idealogica\RouteOne\RouteMiddleware;
 
 use Idealogica\RouteOne\AdapterMiddleware;
-use function Idealogica\RouteOne\resetRequestRouteAttrs;
+use function Idealogica\RouteOne\resetRequestRouteAttributes;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMiddlewareException;
 use Interop\Http\Middleware\DelegateInterface;
@@ -70,7 +70,7 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
                 return $delegate->process($request);
             }
         }
-        $request = resetRequestRouteAttrs($request);
+        $request = resetRequestRouteAttributes($request);
         foreach ((array)$attributes as $key => $val) {
             $request = $request->withAttribute('1.' . $key, $val);
         }

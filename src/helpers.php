@@ -8,7 +8,7 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * @return ServerRequestInterface
  */
-function resetRequestRouteAttrs(ServerRequestInterface $request)
+function resetRequestRouteAttributes(ServerRequestInterface $request)
 {
     foreach ($request->getAttributes() as $name => $value) {
         if (preg_match('#^1\.#', $name)) {

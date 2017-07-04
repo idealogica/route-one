@@ -51,14 +51,14 @@ class AdapterMiddleware implements MiddlewareInterface
          */
         $middleware = $this->middleware;
         if ($this->resetRequestRouteAttributes) {
-            $request = resetRequestRouteAttrs($request);
+            $request = resetRequestRouteAttributes($request);
         }
         if ($middleware) {
             if (!$middleware instanceof MiddlewareInterface) {
                 if (is_callable($middleware)) {
                     return $middleware($request, $delegate);
                 } else {
-                    throw new RouteOneException('Only PSR-15 and callable middleware is allowed');
+                    throw new RouteOneException('Only PSR-15 compliant and callable middleware is allowed');
                 }
             }
             return $middleware->process($request, $delegate);
