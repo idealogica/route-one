@@ -1,14 +1,13 @@
 <?php
 namespace Idealogica\RouteOne\RouteMiddleware;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Interop\Http\Middleware\MiddlewareInterface;
 
 /**
  * Class RouterMiddlewareInterface
  * @package Idealogica\RouteOne
  */
-interface RouteMiddlewareInterface
+interface RouteMiddlewareInterface extends MiddlewareInterface
 {
     const METHOD_GET = 'GET';
 
@@ -61,23 +60,14 @@ interface RouteMiddlewareInterface
     public function getMiddleware();
 
     /**
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
      * @return $this
      */
-    public function setMiddleware(callable $middleware);
+    public function setMiddleware($middleware);
 
     /**
      * @return $this
      */
     public function clone();
-
-    /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param callable $next
-     *
-     * @return ResponseInterface
-     */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next);
 }

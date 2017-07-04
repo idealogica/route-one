@@ -1,8 +1,13 @@
 <?php
 namespace Idealogica\RouteOne\RouteMiddleware;
 
+use Idealogica\RouteOne\AdapterMiddleware;
 use function Idealogica\RouteOne\resetRequestRouteAttrs;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
+use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMiddlewareException;
+use Interop\Http\Middleware\DelegateInterface;
+use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -13,12 +18,12 @@ use Psr\Http\Message\ServerRequestInterface;
 abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
 {
     /**
-     * @var null|callable
+     * @var null|MiddlewareInterface|AdapterMiddleware
      */
     protected $middleware = null;
 
     /**
-     * @return callable|null
+     * @return MiddlewareInterface|null|AdapterMiddleware
      */
     public function getMiddleware()
     {
@@ -26,13 +31,14 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
     }
 
     /**
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
      * @return $this
+     * @throws RouteMiddlewareException
      */
-    public function setMiddleware(callable $middleware)
+    public function setMiddleware($middleware)
     {
-        $this->middleware = $middleware;
+        $this->middleware = new AdapterMiddleware($middleware);
         return $this;
     }
 
@@ -45,29 +51,29 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
     abstract protected function resolve(ServerRequestInterface $request);
 
     /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param callable $next
+     * @param RequestInterface $request
+     * @param DelegateInterface $delegate
      *
      * @return ResponseInterface
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
+    public function process(RequestInterface $request, DelegateInterface $delegate)
     {
+        /**
+         * TODO: remove when middleman updates psr-15 dependency
+         * @var ServerRequestInterface $request
+         */
         $attributes = [];
-        if (!is_callable($this->getMiddleware())) {
-            return $next($request, $response);
-        }
         if ($this->getPath() !== null) {
             try {
                 $attributes = $this->resolve($request);
             } catch (RouteMatchingFailedException $e) {
-                return $next($request, $response);
+                return $delegate->process($request);
             }
         }
         $request = resetRequestRouteAttrs($request);
         foreach ((array)$attributes as $key => $val) {
             $request = $request->withAttribute('1.' . $key, $val);
         }
-        return $this->getMiddleware()($request, $response, $next);
+        return $this->getMiddleware()->process($request, $delegate);
     }
 }

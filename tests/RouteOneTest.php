@@ -1,7 +1,8 @@
 <?php
 use Idealogica\RouteOne\DispatcherFactory;
-use Idealogica\RouteOne\MiddlewareDispatcher;
+use Idealogica\RouteOne\MiddlewareDispatcher\MiddlemanMiddlewareDispatcher;
 use Idealogica\RouteOne\UriGenerator\Exception\UriGeneratorException;
+use Interop\Http\Middleware\DelegateInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +25,7 @@ class RouteOneTest extends TestCase
      */
     public function setUp()
     {
-        $this->dispatcherFactory = new DispatcherFactory();
+        $this->dispatcherFactory = DispatcherFactory::CreateDefault();
     }
 
     /**
@@ -38,8 +39,7 @@ class RouteOneTest extends TestCase
                 [],
                 'http://www.test.com/blog',
                 'GET'
-            ),
-            new Response()
+            )
         );
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
@@ -62,8 +62,7 @@ class RouteOneTest extends TestCase
                 [],
                 'http://www.test.com/blog/1',
                 'GET'
-            ),
-            new Response()
+            )
         );
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
@@ -86,8 +85,7 @@ class RouteOneTest extends TestCase
                 [],
                 'http://www.test.com/blog/123456',
                 'GET'
-            ),
-            new Response()
+            )
         );
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
@@ -105,7 +103,7 @@ class RouteOneTest extends TestCase
     public function testUriGenerator()
     {
         /**
-         * @var MiddlewareDispatcher $blogDispatcher
+         * @var MiddlemanMiddlewareDispatcher $blogDispatcher
          */
         $this->setupDispatcher($blogDispatcher);
         $blogUrl = $blogDispatcher->getUriGenerator()->generate('blog.list');
@@ -120,7 +118,7 @@ class RouteOneTest extends TestCase
     public function testReset()
     {
         /**
-         * @var MiddlewareDispatcher $blogDispatcher
+         * @var MiddlemanMiddlewareDispatcher $blogDispatcher
          */
         $this->setupDispatcher($blogDispatcher);
         $blogDispatcher->reset();
@@ -134,11 +132,11 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     * @param MiddlewareDispatcher|null $blogDispatcher
+     * @param MiddlemanMiddlewareDispatcher|null $blogDispatcher
      *
-     * @return MiddlewareDispatcher
+     * @return MiddlemanMiddlewareDispatcher
      */
-    protected function setupDispatcher(MiddlewareDispatcher &$blogDispatcher = null)
+    protected function setupDispatcher(MiddlemanMiddlewareDispatcher &$blogDispatcher = null)
     {
         // site dispatcher
 
@@ -155,56 +153,55 @@ class RouteOneTest extends TestCase
         // blog posts lists middleware (path based routing)
 
         $blogDispatcher->addGetRoute('/blog',
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next) {
+            function (ServerRequestInterface $request, DelegateInterface $next) {
                 // stop middleware chain execution
-                return $response->withBody($this->streamFor('<h1>Posts list</h1><p>Post1</p><p>Post2</p>'));
+                return new Response($this->streamFor('<h1>Posts list</h1><p>Post1</p><p>Post2</p>'));
             }
         )->setName('blog.list');
 
         // blog post middleware (path based routing)
 
         $blogDispatcher->addGetRoute('/blog/{id}',
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next) {
+            function (ServerRequestInterface $request, DelegateInterface $next) {
                 $this->assertArrayHasKey('1.id', $request->getAttributes());
                 $id = (int)$request->getAttribute('1.id'); // prefix for route-one attributes
                 // post id is valid
                 if ($id === 1) {
                     // stop middleware chain execution
-                    return $response->withBody($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
+                    return new Response($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
                 }
                 // post not found, continue to the next middleware
-                return $next($request, $response);
+                return $next->process($request);
             }
         )->setName('blog.post');
 
         // blog page not found middleware (no routing, executes for each request)
 
         $blogDispatcher->addMiddleware(
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next)
+            function (ServerRequestInterface $request, DelegateInterface $next)
             {
                 // 404 response
-                return $response
-                    ->withStatus(404)
-                    ->withBody($this->streamFor('<h1>Page not found</h1>'));
-            }
-        );
-
-        // blog middleware
-
-        $dispatcher->addMiddleware(
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($blogDispatcher) {
-                return $next($request, $blogDispatcher->dispatch($request, $response));
+                return new Response($this->streamFor('<h1>Page not found</h1>'), 404);
             }
         );
 
         // page layout middleware
 
         $dispatcher->addMiddleware(
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next) {
+            function (ServerRequestInterface $request, DelegateInterface $next) {
+                $response = $next->process($request);
                 $content = $response->getBody()->getContents();
                 return $response
                     ->withBody($this->streamFor('<html><body>' . $content . '</body></html>'))
                     ->withHeader('content-type', 'text/html; charset=utf-8');
+            }
+        );
+
+        // blog middleware
+
+        $dispatcher->addMiddleware(
+            function (ServerRequestInterface $request, DelegateInterface $next) use ($blogDispatcher) {
+                return $blogDispatcher->dispatch($request);
             }
         );
 

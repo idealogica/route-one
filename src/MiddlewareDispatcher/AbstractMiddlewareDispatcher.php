@@ -1,25 +1,20 @@
 <?php
-namespace Idealogica\RouteOne;
+namespace Idealogica\RouteOne\MiddlewareDispatcher;
 
+use Idealogica\RouteOne\AdapterMiddleware;
+use Idealogica\RouteOne\RouteFactory;
 use Idealogica\RouteOne\RouteMiddleware\AuraRouteMiddleware;
 use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
 use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Relay\RelayBuilder;
+use Interop\Http\Middleware\MiddlewareInterface;
 
 /**
- * Class MiddlewareDispatcher
- * @package Idealogica\RouteOne
+ * Class AbstractMiddlewareDispatcher
+ * @package Idealogica\RouteOne\Dispatcher
  */
-class MiddlewareDispatcher
+abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInterface
 {
-    /**
-     * @var null|RelayBuilder
-     */
-    protected $relayBuilder = null;
-
     /**
      * @var null|RouteFactory
      */
@@ -33,27 +28,21 @@ class MiddlewareDispatcher
     /**
      * MiddlewareDispatcher constructor.
      *
-     * @param string $basePath
-     * @param callable|null $middlewareResolver
-     * @param RouteMiddlewareInterface|null $defaultRouteMiddleware
-     * @param UriGeneratorInterface|null $uriGenerator
+     * @param RouteMiddlewareInterface $defaultRouteMiddleware
+     * @param UriGeneratorInterface $uriGenerator
      */
     public function __construct(
-        $basePath = '',
-        callable $middlewareResolver = null,
-        RouteMiddlewareInterface $defaultRouteMiddleware = null,
-        UriGeneratorInterface $uriGenerator = null
+        RouteMiddlewareInterface $defaultRouteMiddleware,
+        UriGeneratorInterface $uriGenerator
     ) {
-        $this->relayBuilder = new RelayBuilder($middlewareResolver);
         $this->routeFactory = new RouteFactory(
-            $basePath,
             $defaultRouteMiddleware,
             $uriGenerator
         );
     }
 
     /**
-     * @return UriGenerator\UriGeneratorInterface|AuraUriGenerator|null
+     * @return UriGeneratorInterface|AuraUriGenerator|null
      */
     public function getUriGenerator()
     {
@@ -90,21 +79,18 @@ class MiddlewareDispatcher
     }
 
     /**
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return callable
+     * @return MiddlewareInterface
      */
-    public function addMiddleware(callable $middleware)
+    public function addMiddleware($middleware)
     {
-        $this->middlewares[] =
-            function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($middleware) {
-                return $middleware(resetRequestRouteAttrs($request), $response, $next);
-            };
+        $this->middlewares[] = new AdapterMiddleware($middleware, true);
         return $middleware;
     }
 
     /**
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
     public function addRoute()
     {
@@ -115,11 +101,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addGetRoute($path, callable $middleware = null)
+    public function addGetRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createGetRoute($path, $middleware)
@@ -128,11 +114,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addPostRoute($path, callable $middleware = null)
+    public function addPostRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createPostRoute($path, $middleware)
@@ -141,11 +127,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addPutRoute($path, callable $middleware = null)
+    public function addPutRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createPutRoute($path, $middleware)
@@ -154,11 +140,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addDeleteRoute($path, callable $middleware = null)
+    public function addDeleteRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createDeleteRoute($path, $middleware)
@@ -167,11 +153,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addHeadRoute($path, callable $middleware = null)
+    public function addHeadRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createHeadRoute($path, $middleware)
@@ -180,11 +166,11 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addPatchRoute($path, callable $middleware = null)
+    public function addPatchRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createPatchRoute($path, $middleware)
@@ -193,27 +179,15 @@ class MiddlewareDispatcher
 
     /**
      * @param string $path
-     * @param callable $middleware
+     * @param MiddlewareInterface|callable $middleware
      *
-     * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
      */
-    public function addOptionsRoute($path, callable $middleware = null)
+    public function addOptionsRoute($path, $middleware = null)
     {
         return $this->addMiddleware(
             $this->routeFactory->createOptionsRoute($path, $middleware)
         );
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     *
-     * @return ResponseInterface
-     */
-    public function dispatch(ServerRequestInterface $request, ResponseInterface $response)
-    {
-        $relay = $this->relayBuilder->newInstance($this->middlewares);
-        return $relay($request, $response);
     }
 
     /**

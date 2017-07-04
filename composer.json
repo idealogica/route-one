@@ -14,7 +14,10 @@
     "require": {
         "php": ">=7.0.0",
         "aura/router": "~3.1",
-        "relay/relay": "~1.1"
+        "relay/relay": "~1.1",
+        "mindplay/middleman": "~2.0",
+        "psr/http-message": "~1.0",
+        "http-interop/http-middleware": "~0.2"
     },
     "require-dev": {
         "phpunit/phpunit": "~6.2",

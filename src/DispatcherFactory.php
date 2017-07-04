@@ -1,7 +1,10 @@
 <?php
 namespace Idealogica\RouteOne;
 
+use Idealogica\RouteOne\MiddlewareDispatcher\MiddlemanMiddlewareDispatcher;
+use Idealogica\RouteOne\RouteMiddleware\AuraRouteMiddleware;
 use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
+use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
 
 /**
@@ -10,16 +13,6 @@ use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
  */
 class DispatcherFactory
 {
-    /**
-     * @var string
-     */
-    protected $basePath = '';
-
-    /**
-     * @var null|callable
-     */
-    protected $middlewareResolver = null;
-
     /**
      * @var null|RouteMiddlewareInterface
      */
@@ -31,44 +24,58 @@ class DispatcherFactory
     protected $uriGenerator = null;
 
     /**
-     * DispatcherFactory constructor.
-     *
+     * @var null|callable
+     */
+    protected $middlewareResolver = null;
+
+    /**
      * @param string $basePath
      * @param callable|null $middlewareResolver
-     * @param RouteMiddlewareInterface|null $defaultRouteMiddleware
-     * @param UriGeneratorInterface|null $uriGenerator
+     *
+     * @return static
      */
-    public function __construct(
-        $basePath = '',
-        callable $middlewareResolver = null,
-        RouteMiddlewareInterface $defaultRouteMiddleware = null,
-        UriGeneratorInterface $uriGenerator = null
-    ) {
-        $this->basePath = $basePath;
-        $this->middlewareResolver = $middlewareResolver;
-        $this->defaultRouteMiddleware = $defaultRouteMiddleware;
-        $this->uriGenerator = $uriGenerator;
+    public static function CreateDefault($basePath = '', callable $middlewareResolver = null)
+    {
+        return new static(
+            new AuraRouteMiddleware($basePath),
+            new AuraUriGenerator($basePath),
+            $middlewareResolver
+        );
     }
 
     /**
-     * @param string|null $basePath
+     * DispatcherFactory constructor.
+     *
+     * @param RouteMiddlewareInterface $defaultRouteMiddleware
+     * @param UriGeneratorInterface $uriGenerator
      * @param callable|null $middlewareResolver
+     */
+    public function __construct(
+        RouteMiddlewareInterface $defaultRouteMiddleware,
+        UriGeneratorInterface $uriGenerator,
+        callable $middlewareResolver = null
+    ) {
+        $this->defaultRouteMiddleware = $defaultRouteMiddleware;
+        $this->uriGenerator = $uriGenerator;
+        $this->middlewareResolver = $middlewareResolver;
+    }
+
+    /**
      * @param RouteMiddlewareInterface|null $defaultRouteMiddleware
      * @param UriGeneratorInterface|null $uriGenerator
+     * @param callable|null $middlewareResolver
      *
-     * @return MiddlewareDispatcher
+     * @return MiddlemanMiddlewareDispatcher
      */
     public function createDispatcher(
-        $basePath = null,
-        callable $middlewareResolver = null,
         RouteMiddlewareInterface $defaultRouteMiddleware = null,
-        UriGeneratorInterface $uriGenerator = null
+        UriGeneratorInterface $uriGenerator = null,
+        callable $middlewareResolver = null
     ) {
-        return new MiddlewareDispatcher(
-            $basePath ?? $this->basePath,
-            $middlewareResolver ?? $this->middlewareResolver,
+        return new MiddlemanMiddlewareDispatcher(
             $defaultRouteMiddleware ?? $this->defaultRouteMiddleware,
-            $uriGenerator ?? $this->uriGenerator
+            $uriGenerator ?? $this->uriGenerator,
+            $middlewareResolver ?? $this->middlewareResolver
         );
     }
 }
