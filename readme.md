@@ -18,7 +18,7 @@ in other projects.
 
 ## Installation
  
-`composer require idealogica/route-one:~0.1.0`
+```composer require idealogica/route-one:~0.1.0```
  
 ## General usage
  
