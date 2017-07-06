@@ -2,7 +2,7 @@
 
 <br /><img alt="route-one" title="route-one" src="http://storage3.static.itmages.com/i/17/0704/h_1499201379_3971410_182da2e922.png"><br /><br />
 
-**The package is in the beta stage.**
+**The package is in the beta stage**
 
 `route-one` is a [PSR-15](https://github.com/http-interop/http-middleware) compatible middleware aimed to 
 flexibly route a request to another middleware based on HTTP request url path, host, http method, etc. 
