@@ -63,14 +63,26 @@ class AdapterMiddleware implements MiddlewareInterface
             $request = resetRequestRouteAttributes($request);
         }
         if ($middleware) {
-            if ($this->middlewareResolver && is_string($middleware)) {
+            if ($this->middlewareResolver && (is_string($middleware) || is_array($middleware))) {
+                if (is_array($middleware)) {
+                    $id = $middleware[0];
+                    $method = $middleware[1];
+                } else {
+                    $id = $middleware;
+                    $method = '';
+                }
                 $middlewareResolver = $this->middlewareResolver;
                 if (is_callable($this->middlewareResolver)) {
-                    $middleware = $middlewareResolver($middleware);
+                    $instance = $middlewareResolver($id);
                 } else if ($middlewareResolver instanceof ContainerInterface) {
-                    $middleware = $middlewareResolver->get($middleware);
+                    $instance = $middlewareResolver->has($id) ? $middlewareResolver->get($id) : $id;
                 } else {
                     throw new RouteOneException('Only PSR-11 compliant or callable middleware resolver is allowed');
+                }
+                if ($method) {
+                    $middleware = [$instance, $method];
+                } else {
+                    $middleware = $instance;
                 }
             }
             if (!$middleware instanceof MiddlewareInterface) {
