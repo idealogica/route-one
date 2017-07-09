@@ -7,6 +7,7 @@ use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMiddlewareException;
 use Interop\Http\Middleware\DelegateInterface;
 use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,9 +19,24 @@ use Psr\Http\Message\ServerRequestInterface;
 abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
 {
     /**
+     * @var null|ContainerInterface|callable
+     */
+    protected $middlewareResolver = null;
+
+    /**
      * @var null|MiddlewareInterface|AdapterMiddleware
      */
     protected $middleware = null;
+
+    /**
+     * AbstractRouteMiddleware constructor.
+     *
+     * @param null|ContainerInterface|callable $middlewareResolver
+     */
+    public function __construct($middlewareResolver = null)
+    {
+        $this->middlewareResolver = $middlewareResolver;
+    }
 
     /**
      * @return MiddlewareInterface|null|AdapterMiddleware
@@ -38,7 +54,7 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
      */
     public function setMiddleware($middleware)
     {
-        $this->middleware = new AdapterMiddleware($middleware);
+        $this->middleware = new AdapterMiddleware($middleware, false, $this->middlewareResolver);
         return $this;
     }
 

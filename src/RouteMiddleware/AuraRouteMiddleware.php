@@ -12,6 +12,7 @@ use Aura\Router\Rule\RuleIterator;
 use Aura\Router\Rule\Secure;
 use Aura\Router\Rule\Special;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\NullLogger;
 
@@ -34,10 +35,12 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
     /**
      * AuraRouteMiddleware constructor.
      *
+     * @param null|ContainerInterface|callable $middlewareResolver
      * @param string $basePath
      */
-    public function __construct($basePath = '')
+    public function __construct($middlewareResolver = null, $basePath = '')
     {
+        parent::__construct($middlewareResolver);
         $this->basePath = $basePath;
         $this->auraRoute = new Route();
     }
@@ -364,8 +367,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      */
     public function clone()
     {
-        $clonedRouteMiddleware = new static();
-        $clonedRouteMiddleware->basePath = $this->basePath;
+        $clonedRouteMiddleware = clone $this;
         $clonedRouteMiddleware->auraRoute = clone $this->auraRoute;
         return $clonedRouteMiddleware;
     }

@@ -9,7 +9,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Stream;
-use Zend\Diactoros\Response\SapiEmitter;
 
 /**
  * Class RouteOneTest
@@ -26,7 +25,7 @@ class RouteOneTest extends TestCase
      */
     public function setUp()
     {
-        $this->dispatcherFactory = DispatcherFactory::CreateDefault();
+        $this->dispatcherFactory = DispatcherFactory::createDefault();
     }
 
     /**
@@ -130,6 +129,37 @@ class RouteOneTest extends TestCase
             return;
         }
         $this->fail();
+    }
+
+    public function testMiddlewareResolver()
+    {
+        $resolver = function ($id) {
+            if ($id === 'middleware2') {
+                return function (ServerRequestInterface $request, DelegateInterface $next) use ($id) {
+                    return new Response($this->streamFor($id));
+                };
+            } elseif ($id === 'middleware1') {
+                return function (ServerRequestInterface $request, DelegateInterface $next) use ($id) {
+                    $response = $next->process($request);
+                    return $response->withBody($this->streamFor($response->getBody()->getContents() . $id));
+                };
+            }
+            $this->fail();
+        };
+        $dispatcher = DispatcherFactory::createDefault($resolver)->createDispatcher();
+        $dispatcher->addMiddleware('middleware1');
+        $dispatcher->addGetRoute('/', 'middleware2');
+        $response = $dispatcher->dispatch(
+            new ServerRequest(
+                [],
+                [],
+                'http://www.test.com/',
+                'GET'
+            )
+        );
+        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $content = $response->getBody()->getContents();
+        $this->assertContains('middleware2middleware1', $content);
     }
 
     /**

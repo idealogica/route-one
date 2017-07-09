@@ -6,6 +6,7 @@ use Idealogica\RouteOne\RouteMiddleware\AuraRouteMiddleware;
 use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
 use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Class DispatcherFactory
@@ -29,15 +30,15 @@ class DispatcherFactory
     protected $middlewareResolver = null;
 
     /**
+     * @param null|ContainerInterface|callable $middlewareResolver
      * @param string $basePath
-     * @param callable|null $middlewareResolver
      *
      * @return static
      */
-    public static function CreateDefault($basePath = '', callable $middlewareResolver = null)
+    public static function createDefault($middlewareResolver = null, $basePath = '')
     {
         return new static(
-            new AuraRouteMiddleware($basePath),
+            new AuraRouteMiddleware($middlewareResolver, $basePath),
             new AuraUriGenerator($basePath),
             $middlewareResolver
         );
@@ -48,12 +49,12 @@ class DispatcherFactory
      *
      * @param RouteMiddlewareInterface $defaultRouteMiddleware
      * @param UriGeneratorInterface $uriGenerator
-     * @param callable|null $middlewareResolver
+     * @param null|ContainerInterface|callable $middlewareResolver
      */
     public function __construct(
         RouteMiddlewareInterface $defaultRouteMiddleware,
         UriGeneratorInterface $uriGenerator,
-        callable $middlewareResolver = null
+        $middlewareResolver = null
     ) {
         $this->defaultRouteMiddleware = $defaultRouteMiddleware;
         $this->uriGenerator = $uriGenerator;
@@ -63,14 +64,14 @@ class DispatcherFactory
     /**
      * @param RouteMiddlewareInterface|null $defaultRouteMiddleware
      * @param UriGeneratorInterface|null $uriGenerator
-     * @param callable|null $middlewareResolver
+     * @param null|ContainerInterface|callable $middlewareResolver
      *
      * @return MiddlemanMiddlewareDispatcher
      */
     public function createDispatcher(
         RouteMiddlewareInterface $defaultRouteMiddleware = null,
         UriGeneratorInterface $uriGenerator = null,
-        callable $middlewareResolver = null
+        $middlewareResolver = null
     ) {
         return new MiddlemanMiddlewareDispatcher(
             $defaultRouteMiddleware ?? $this->defaultRouteMiddleware,

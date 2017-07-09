@@ -8,6 +8,7 @@ use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
 use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
 use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Class AbstractMiddlewareDispatcher
@@ -15,6 +16,11 @@ use Interop\Http\Middleware\MiddlewareInterface;
  */
 abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInterface
 {
+    /**
+     * @var null|ContainerInterface|callable
+     */
+    protected $middlewareResolver = null;
+
     /**
      * @var null|RouteFactory
      */
@@ -30,15 +36,18 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      *
      * @param RouteMiddlewareInterface $defaultRouteMiddleware
      * @param UriGeneratorInterface $uriGenerator
+     * @param null|ContainerInterface|callable $middlewareResolver
      */
     public function __construct(
         RouteMiddlewareInterface $defaultRouteMiddleware,
-        UriGeneratorInterface $uriGenerator
+        UriGeneratorInterface $uriGenerator,
+        $middlewareResolver = null
     ) {
         $this->routeFactory = new RouteFactory(
             $defaultRouteMiddleware,
             $uriGenerator
         );
+        $this->middlewareResolver = $middlewareResolver;
     }
 
     /**
@@ -85,7 +94,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      */
     public function addMiddleware($middleware)
     {
-        $this->middlewares[] = new AdapterMiddleware($middleware, true);
+        $this->middlewares[] = new AdapterMiddleware($middleware, true, $this->middlewareResolver);
         return $middleware;
     }
 
