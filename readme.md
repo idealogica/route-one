@@ -28,7 +28,7 @@ composer require idealogica/route-one:~0.1.0
 
 // general dispatcher
 
-$dispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
+$dispatcher = DispatcherFactory::createDefault()->createDispatcher();
 
 // page layout middleware
 
@@ -49,7 +49,7 @@ $dispatcher->addMiddleware(
 
         // blog middleware dispatcher
 
-        $blogDispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
+        $blogDispatcher = DispatcherFactory::createDefault()->createDispatcher();
         $blogDispatcher->getDefaultRoute()->setHost('www.test.com')->setSecure(false);
 
         // blog posts list middleware (path based routing)
