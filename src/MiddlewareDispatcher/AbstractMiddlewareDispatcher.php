@@ -113,6 +113,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addGetRoute($path, $middleware = null)
     {
@@ -126,6 +127,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addPostRoute($path, $middleware = null)
     {
@@ -139,6 +141,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addPutRoute($path, $middleware = null)
     {
@@ -152,6 +155,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addDeleteRoute($path, $middleware = null)
     {
@@ -165,6 +169,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addHeadRoute($path, $middleware = null)
     {
@@ -178,6 +183,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addPatchRoute($path, $middleware = null)
     {
@@ -191,6 +197,7 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
      * @param MiddlewareInterface|callable $middleware
      *
      * @return MiddlewareInterface|RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function addOptionsRoute($path, $middleware = null)
     {

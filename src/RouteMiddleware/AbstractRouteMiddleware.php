@@ -4,7 +4,6 @@ namespace Idealogica\RouteOne\RouteMiddleware;
 use Idealogica\RouteOne\AdapterMiddleware;
 use function Idealogica\RouteOne\resetRequestRouteAttributes;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
-use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMiddlewareException;
 use Interop\Http\Middleware\DelegateInterface;
 use Interop\Http\Middleware\MiddlewareInterface;
 use Psr\Container\ContainerInterface;
@@ -50,7 +49,6 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
      * @param MiddlewareInterface|callable $middleware
      *
      * @return $this
-     * @throws RouteMiddlewareException
      */
     public function setMiddleware($middleware)
     {
@@ -71,6 +69,7 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
      * @param DelegateInterface $delegate
      *
      * @return ResponseInterface
+     * @throws \Idealogica\RouteOne\Exception\RouteOneException
      */
     public function process(RequestInterface $request, DelegateInterface $delegate)
     {
@@ -78,13 +77,10 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
          * TODO: remove when middleman updates psr-15 dependency
          * @var ServerRequestInterface $request
          */
-        $attributes = [];
-        if ($this->getPath() !== null) {
-            try {
-                $attributes = $this->resolve($request);
-            } catch (RouteMatchingFailedException $e) {
-                return $delegate->process($request);
-            }
+        try {
+            $attributes = $this->resolve($request);
+        } catch (RouteMatchingFailedException $e) {
+            return $delegate->process($request);
         }
         $request = resetRequestRouteAttributes($request);
         foreach ((array)$attributes as $key => $val) {

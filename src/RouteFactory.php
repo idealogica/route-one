@@ -63,6 +63,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createGetRoute($path, $middleware = null)
     {
@@ -77,6 +78,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createPostRoute($path, $middleware = null)
     {
@@ -91,6 +93,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createPutRoute($path, $middleware = null)
     {
@@ -105,6 +108,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createDeleteRoute($path, $middleware = null)
     {
@@ -119,6 +123,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createHeadRoute($path, $middleware = null)
     {
@@ -133,6 +138,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createPatchRoute($path, $middleware = null)
     {
@@ -147,6 +153,7 @@ class RouteFactory
      * @param MiddlewareInterface|callable $middleware
      *
      * @return RouteMiddlewareInterface|AuraRouteMiddleware
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function createOptionsRoute($path, $middleware = null)
     {

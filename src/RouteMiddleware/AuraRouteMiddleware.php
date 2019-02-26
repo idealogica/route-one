@@ -222,6 +222,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      * @param string $name
      *
      * @return $this
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function setName($name)
     {
@@ -241,6 +242,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      * @param string $namePrefix
      *
      * @return $this
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function setNamePrefix($namePrefix)
     {
@@ -260,6 +262,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      * @param string $path
      *
      * @return $this
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function setPath($path)
     {
@@ -279,6 +282,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      * @param string $pathPrefix
      *
      * @return $this
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function setPathPrefix($pathPrefix)
     {
@@ -377,6 +381,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
      *
      * @return array
      * @throws RouteMatchingFailedException
+     * @throws \Aura\Router\Exception\RouteAlreadyExists
      */
     protected function resolve(ServerRequestInterface $request)
     {

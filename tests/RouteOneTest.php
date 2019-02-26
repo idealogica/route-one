@@ -29,7 +29,7 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     *
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function testBlogRoute()
     {
@@ -52,7 +52,7 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     *
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function testBlogPostRoute()
     {
@@ -75,7 +75,7 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     *
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function test404Error()
     {
@@ -98,7 +98,8 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     *
+     * @throws UriGeneratorException
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function testUriGenerator()
     {
@@ -113,7 +114,7 @@ class RouteOneTest extends TestCase
     }
 
     /**
-     *
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     public function testReset()
     {
@@ -131,6 +132,9 @@ class RouteOneTest extends TestCase
         $this->fail();
     }
 
+    /**
+     * @throws \Aura\Router\Exception\ImmutableProperty
+     */
     public function testMiddlewareResolver()
     {
         $resolver = function ($id) {
@@ -145,6 +149,7 @@ class RouteOneTest extends TestCase
                 };
             }
             $this->fail();
+            return null;
         };
         $dispatcher = DispatcherFactory::createDefault($resolver)->createDispatcher();
         $dispatcher->addMiddleware('middleware1');
@@ -163,9 +168,95 @@ class RouteOneTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function testDocExampleCode()
+    {
+        // general dispatcher
+
+        $dispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
+
+        // page layout middleware
+
+        $dispatcher->addMiddleware(
+            function (ServerRequestInterface $request, DelegateInterface $next) {
+                $response = $next->process($request);
+                $content = $response->getBody()->getContents();
+                return $response
+                    ->withBody($this->streamFor('<html><body>' . $content . '</body></html>'))
+                    ->withHeader('content-type', 'text/html; charset=utf-8');
+            }
+        );
+
+        // blog middleware
+
+        $dispatcher->addMiddleware(
+            function (ServerRequestInterface $request, DelegateInterface $next) {
+
+                // blog middleware dispatcher
+
+                $blogDispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
+                $blogDispatcher->getDefaultRoute()->setHost('www.test.com')->setSecure(false);
+
+                // blog posts list middleware (path based routing)
+
+                $blogDispatcher->addGetRoute('/blog/posts',
+                    function (ServerRequestInterface $request, DelegateInterface $next) {
+                        // stop middleware chain execution
+                        return new Response($this->streamFor('<h1>Posts list</h1><p>Post1</p><p>Post2</p>'));
+                    }
+                )->setName('blog.list');
+
+                // blog single post middleware (path based routing)
+
+                $blogDispatcher->addGetRoute('/blog/posts/{id}',
+                    function (ServerRequestInterface $request, DelegateInterface $next) {
+                        $id = (int)$request->getAttribute('1.id'); // prefix for route-one attributes
+                        // post id is valid
+                        if ($id === 1) {
+                            // stop middleware chain execution
+                            return new Response($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
+                        }
+                        // post not found, continue to the next middleware
+                        return $next->process($request);
+                    }
+                )->setName('blog.post');
+
+                // blog page not found middleware (no routing, executes for each request)
+
+                $blogDispatcher->addMiddleware(
+                    function (ServerRequestInterface $request, DelegateInterface $next)
+                    {
+                        // 404 response
+                        return new Response($this->streamFor('<h1>Page not found</h1>'), 404);
+                    }
+                );
+
+                return $blogDispatcher->dispatch($request);
+            }
+        );
+
+        // dispatching
+
+        $response = $dispatcher->dispatch(
+            new ServerRequest(
+                [],
+                [],
+                'http://www.test.com/blog/posts/1',
+                'GET'
+            )
+        );
+
+        // (new SapiEmitter())->emit($response);
+
+        $this->assertContains('Post #1', $response->getBody()->getContents());
+    }
+
+    /**
      * @param MiddlemanMiddlewareDispatcher|null $blogDispatcher
      *
      * @return MiddlemanMiddlewareDispatcher
+     * @throws \Aura\Router\Exception\ImmutableProperty
      */
     protected function setupDispatcher(MiddlemanMiddlewareDispatcher &$blogDispatcher = null)
     {
@@ -250,90 +341,5 @@ class RouteOneTest extends TestCase
         $body->write($content);
         $body->rewind();
         return $body;
-    }
-
-    /**
-     *
-     */
-    protected function testDocExampleCode()
-    {
-        // general dispatcher
-
-        $dispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
-
-        // page layout middleware
-
-        $dispatcher->addMiddleware(
-            function (ServerRequestInterface $request, DelegateInterface $next) {
-                $response = $next->process($request);
-                $content = $response->getBody()->getContents();
-                return $response
-                    ->withBody($this->streamFor('<html><body>' . $content . '</body></html>'))
-                    ->withHeader('content-type', 'text/html; charset=utf-8');
-            }
-        );
-
-        // blog middleware
-
-        $dispatcher->addMiddleware(
-            function (ServerRequestInterface $request, DelegateInterface $next) {
-
-                // blog middleware dispatcher
-
-                $blogDispatcher = DispatcherFactory::CreateDefault()->createDispatcher();
-                $blogDispatcher->getDefaultRoute()->setHost('www.test.com')->setSecure(false);
-
-                // blog posts list middleware (path based routing)
-
-                $blogDispatcher->addGetRoute('/blog/posts',
-                    function (ServerRequestInterface $request, DelegateInterface $next) {
-                        // stop middleware chain execution
-                        return new Response($this->streamFor('<h1>Posts list</h1><p>Post1</p><p>Post2</p>'));
-                    }
-                )->setName('blog.list');
-
-                // blog single post middleware (path based routing)
-
-                $blogDispatcher->addGetRoute('/blog/posts/{id}',
-                    function (ServerRequestInterface $request, DelegateInterface $next) {
-                        $id = (int)$request->getAttribute('1.id'); // prefix for route-one attributes
-                        // post id is valid
-                        if ($id === 1) {
-                            // stop middleware chain execution
-                            return new Response($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
-                        }
-                        // post not found, continue to the next middleware
-                        return $next->process($request);
-                    }
-                )->setName('blog.post');
-
-                // blog page not found middleware (no routing, executes for each request)
-
-                $blogDispatcher->addMiddleware(
-                    function (ServerRequestInterface $request, DelegateInterface $next)
-                    {
-                        // 404 response
-                        return new Response($this->streamFor('<h1>Page not found</h1>'), 404);
-                    }
-                );
-
-                return $blogDispatcher->dispatch($request);
-            }
-        );
-
-        // dispatching
-
-        $response = $dispatcher->dispatch(
-            new ServerRequest(
-                [],
-                [],
-                'http://www.test.com/blog/posts/1',
-                'GET'
-            )
-        );
-
-        // (new SapiEmitter())->emit($response);
-
-        $this->assertContains('Post #1', $response->getBody()->getContents());
     }
 }
