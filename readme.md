@@ -1,6 +1,6 @@
 # route-one - PSR-15 route middleware for advanced middleware routing
 
-<br /><img alt="route-one" title="route-one" src="http://storage3.static.itmages.com/i/17/0704/h_1499201379_3971410_182da2e922.png"><br /><br />
+<br /><img alt="route-one" title="route-one" src="https://raw.githubusercontent.com/idealogica/route-one/master/logo.png"><br /><br />
 
 **The package is in the beta stage**
 
