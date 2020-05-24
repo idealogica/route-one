@@ -30,7 +30,7 @@ class AuraRouteMiddleware extends AbstractRouteMiddleware
     /**
      * @var null|Route
      */
-    protected $auraRoute = null;
+    protected $auraRoute;
 
     /**
      * AuraRouteMiddleware constructor.

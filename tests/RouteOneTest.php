@@ -2,13 +2,13 @@
 use Idealogica\RouteOne\DispatcherFactory;
 use Idealogica\RouteOne\MiddlewareDispatcher\MiddlemanMiddlewareDispatcher;
 use Idealogica\RouteOne\UriGenerator\Exception\UriGeneratorException;
-use Interop\Http\Middleware\DelegateInterface;
+use Psr\Http\Server\RequestHandlerInterface as DelegateInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Stream;
+use Laminas\Diactoros\Response;
+use Laminas\Diactoros\ServerRequest;
+use Laminas\Diactoros\Stream;
 
 /**
  * Class RouteOneTest
@@ -18,7 +18,7 @@ class RouteOneTest extends TestCase
     /**
      * @var null|DispatcherFactory
      */
-    protected $dispatcherFactory = null;
+    protected $dispatcherFactory;
 
     /**
      *
@@ -41,14 +41,14 @@ class RouteOneTest extends TestCase
                 'GET'
             )
         );
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        self::assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
-        $this->assertContains('Posts list', $content);
-        $this->assertContains('<html><body>', $content);
+        self::assertStringContainsString('Posts list', $content);
+        self::assertStringContainsString('<html><body>', $content);
         $contentTypeHeader = $response->getHeaderLine('content-type');
-        $this->assertContains('text/html', $contentTypeHeader);
+        self::assertStringContainsString('text/html', $contentTypeHeader);
         $statusCode = $response->getStatusCode();
-        $this->assertEquals(200, $statusCode);
+        self::assertEquals(200, $statusCode);
     }
 
     /**
@@ -64,14 +64,14 @@ class RouteOneTest extends TestCase
                 'GET'
             )
         );
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        self::assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
-        $this->assertContains('Post #1', $content);
-        $this->assertContains('<html><body>', $content);
+        self::assertStringContainsString('Post #1', $content);
+        self::assertStringContainsString('<html><body>', $content);
         $contentTypeHeader = $response->getHeaderLine('content-type');
-        $this->assertContains('text/html', $contentTypeHeader);
+        self::assertStringContainsString('text/html', $contentTypeHeader);
         $statusCode = $response->getStatusCode();
-        $this->assertEquals(200, $statusCode);
+        self::assertEquals(200, $statusCode);
     }
 
     /**
@@ -87,14 +87,14 @@ class RouteOneTest extends TestCase
                 'GET'
             )
         );
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        self::assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
-        $this->assertContains('Page not found', $content);
-        $this->assertContains('<html><body>', $content);
+        self::assertStringContainsString('Page not found', $content);
+        self::assertStringContainsString('<html><body>', $content);
         $contentTypeHeader = $response->getHeaderLine('content-type');
-        $this->assertContains('text/html', $contentTypeHeader);
+        self::assertStringContainsString('text/html', $contentTypeHeader);
         $statusCode = $response->getStatusCode();
-        $this->assertEquals(404, $statusCode);
+        self::assertEquals(404, $statusCode);
     }
 
     /**
@@ -109,8 +109,8 @@ class RouteOneTest extends TestCase
         $this->setupDispatcher($blogDispatcher);
         $blogUrl = $blogDispatcher->getUriGenerator()->generate('blog.list');
         $blogPostUrl = $blogDispatcher->getUriGenerator()->generate('blog.post', ['id' => 100]);
-        $this->assertEquals('http://www.test.com/blog/posts', $blogUrl);
-        $this->assertEquals('http://www.test.com/blog/posts/100', $blogPostUrl);
+        self::assertEquals('http://www.test.com/blog/posts', $blogUrl);
+        self::assertEquals('http://www.test.com/blog/posts/100', $blogPostUrl);
     }
 
     /**
@@ -123,7 +123,7 @@ class RouteOneTest extends TestCase
          */
         $this->setupDispatcher($blogDispatcher);
         $blogDispatcher->reset();
-        $this->assertEmpty($blogDispatcher->getMiddlewares());
+        self::assertEmpty($blogDispatcher->getMiddlewares());
         try {
             $blogDispatcher->getUriGenerator()->generate('blog.list');
         } catch (UriGeneratorException $e) {
@@ -144,7 +144,7 @@ class RouteOneTest extends TestCase
                 };
             } elseif ($id === 'middleware1') {
                 return function (ServerRequestInterface $request, DelegateInterface $next) use ($id) {
-                    $response = $next->process($request);
+                    $response = $next->handle($request);
                     return $response->withBody($this->streamFor($response->getBody()->getContents() . $id));
                 };
             }
@@ -162,9 +162,9 @@ class RouteOneTest extends TestCase
                 'GET'
             )
         );
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        self::assertInstanceOf(ResponseInterface::class, $response);
         $content = $response->getBody()->getContents();
-        $this->assertContains('middleware2middleware1', $content);
+        self::assertStringContainsString('middleware2middleware1', $content);
     }
 
     /**
@@ -180,7 +180,7 @@ class RouteOneTest extends TestCase
 
         $dispatcher->addMiddleware(
             function (ServerRequestInterface $request, DelegateInterface $next) {
-                $response = $next->process($request);
+                $response = $next->handle($request);
                 $content = $response->getBody()->getContents();
                 return $response
                     ->withBody($this->streamFor('<html><body>' . $content . '</body></html>'))
@@ -218,7 +218,7 @@ class RouteOneTest extends TestCase
                             return new Response($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
                         }
                         // post not found, continue to the next middleware
-                        return $next->process($request);
+                        return $next->handle($request);
                     }
                 )->setName('blog.post');
 
@@ -249,7 +249,7 @@ class RouteOneTest extends TestCase
 
         // (new SapiEmitter())->emit($response);
 
-        $this->assertContains('Post #1', $response->getBody()->getContents());
+        self::assertStringContainsString('Post #1', $response->getBody()->getContents());
     }
 
     /**
@@ -285,7 +285,7 @@ class RouteOneTest extends TestCase
 
         $blogDispatcher->addGetRoute('/blog/posts/{id}',
             function (ServerRequestInterface $request, DelegateInterface $next) {
-                $this->assertArrayHasKey('1.id', $request->getAttributes());
+                self::assertArrayHasKey('1.id', $request->getAttributes());
                 $id = (int)$request->getAttribute('1.id'); // prefix for route-one attributes
                 // post id is valid
                 if ($id === 1) {
@@ -293,7 +293,7 @@ class RouteOneTest extends TestCase
                     return new Response($this->streamFor(sprintf('<h1>Post #%s</h1><p>Example post</p>', $id)));
                 }
                 // post not found, continue to the next middleware
-                return $next->process($request);
+                return $next->handle($request);
             }
         )->setName('blog.post');
 
@@ -311,7 +311,7 @@ class RouteOneTest extends TestCase
 
         $dispatcher->addMiddleware(
             function (ServerRequestInterface $request, DelegateInterface $next) {
-                $response = $next->process($request);
+                $response = $next->handle($request);
                 $content = $response->getBody()->getContents();
                 return $response
                     ->withBody($this->streamFor('<html><body>' . $content . '</body></html>'))

@@ -5,7 +5,7 @@ use Idealogica\RouteOne\RouteMiddleware\AuraRouteMiddleware;
 use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
 use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
-use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Class RouterFactory
@@ -16,12 +16,12 @@ class RouteFactory
     /**
      * @var null|RouteMiddlewareInterface
      */
-    protected $defaultRouteMiddleware = null;
+    protected $defaultRouteMiddleware;
 
     /**
      * @var null|UriGeneratorInterface
      */
-    protected $uriGenerator = null;
+    protected $uriGenerator;
 
     /**
      * RouterFactory constructor.

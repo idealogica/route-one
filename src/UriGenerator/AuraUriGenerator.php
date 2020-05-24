@@ -22,12 +22,12 @@ class AuraUriGenerator implements UriGeneratorInterface
     /**
      * @var null|Map
      */
-    protected $auraMap = null;
+    protected $auraMap;
 
     /**
      * @var null|Generator
      */
-    protected $auraGenerator = null;
+    protected $auraGenerator;
 
     /**
      * AuraUriGenerator constructor.

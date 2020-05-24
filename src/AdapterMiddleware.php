@@ -2,10 +2,9 @@
 namespace Idealogica\RouteOne;
 
 use Idealogica\RouteOne\Exception\RouteOneException;
-use Interop\Http\Middleware\DelegateInterface;
-use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface as DelegateInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -18,7 +17,7 @@ class AdapterMiddleware implements MiddlewareInterface
     /**
      * @var null|callable|MiddlewareInterface
      */
-    protected $middleware = null;
+    protected $middleware;
 
     /**
      * @var bool
@@ -28,7 +27,7 @@ class AdapterMiddleware implements MiddlewareInterface
     /**
      * @var null|ContainerInterface|callable
      */
-    protected $middlewareResolver = null;
+    protected $middlewareResolver;
 
     /**
      * CallableAdapterMiddleware constructor.
@@ -45,20 +44,15 @@ class AdapterMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @param RequestInterface $request
+     * @param ServerRequestInterface $request
      * @param DelegateInterface $delegate
      *
      * @return ResponseInterface
      * @throws RouteOneException
      */
-    public function process(RequestInterface $request, DelegateInterface $delegate)
+    public function process(ServerRequestInterface $request, DelegateInterface $delegate): ResponseInterface
     {
-        /**
-         * TODO: remove when middleman updates psr-15 dependency
-         * @var ServerRequestInterface $request
-         */
         $middleware = $this->middleware;
-
         if ($this->resetRequestRouteAttributes) {
             $request = resetRequestRouteAttributes($request);
         }
@@ -94,6 +88,6 @@ class AdapterMiddleware implements MiddlewareInterface
             }
             return $middleware->process($request, $delegate);
         }
-        return $delegate->process($request);
+        return $delegate->handle($request);
     }
 }

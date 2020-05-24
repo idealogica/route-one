@@ -4,10 +4,9 @@ namespace Idealogica\RouteOne\RouteMiddleware;
 use Idealogica\RouteOne\AdapterMiddleware;
 use function Idealogica\RouteOne\resetRequestRouteAttributes;
 use Idealogica\RouteOne\RouteMiddleware\Exception\RouteMatchingFailedException;
-use Interop\Http\Middleware\DelegateInterface;
-use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface as DelegateInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -20,12 +19,12 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
     /**
      * @var null|ContainerInterface|callable
      */
-    protected $middlewareResolver = null;
+    protected $middlewareResolver;
 
     /**
      * @var null|MiddlewareInterface|AdapterMiddleware
      */
-    protected $middleware = null;
+    protected $middleware;
 
     /**
      * AbstractRouteMiddleware constructor.
@@ -65,22 +64,18 @@ abstract class AbstractRouteMiddleware implements RouteMiddlewareInterface
     abstract protected function resolve(ServerRequestInterface $request);
 
     /**
-     * @param RequestInterface $request
+     * @param ServerRequestInterface $request
      * @param DelegateInterface $delegate
      *
      * @return ResponseInterface
      * @throws \Idealogica\RouteOne\Exception\RouteOneException
      */
-    public function process(RequestInterface $request, DelegateInterface $delegate)
+    public function process(ServerRequestInterface $request, DelegateInterface $delegate): ResponseInterface
     {
-        /**
-         * TODO: remove when middleman updates psr-15 dependency
-         * @var ServerRequestInterface $request
-         */
         try {
             $attributes = $this->resolve($request);
         } catch (RouteMatchingFailedException $e) {
-            return $delegate->process($request);
+            return $delegate->handle($request);
         }
         $request = resetRequestRouteAttributes($request);
         foreach ((array)$attributes as $key => $val) {

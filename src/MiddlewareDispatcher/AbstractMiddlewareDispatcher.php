@@ -7,7 +7,7 @@ use Idealogica\RouteOne\RouteMiddleware\AuraRouteMiddleware;
 use Idealogica\RouteOne\RouteMiddleware\RouteMiddlewareInterface;
 use Idealogica\RouteOne\UriGenerator\AuraUriGenerator;
 use Idealogica\RouteOne\UriGenerator\UriGeneratorInterface;
-use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -19,12 +19,12 @@ abstract class AbstractMiddlewareDispatcher implements MiddlewareDispatcherInter
     /**
      * @var null|ContainerInterface|callable
      */
-    protected $middlewareResolver = null;
+    protected $middlewareResolver;
 
     /**
      * @var null|RouteFactory
      */
-    protected $routeFactory = null;
+    protected $routeFactory;
 
     /**
      * @var array

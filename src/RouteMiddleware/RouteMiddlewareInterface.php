@@ -1,7 +1,7 @@
 <?php
 namespace Idealogica\RouteOne\RouteMiddleware;
 
-use Interop\Http\Middleware\MiddlewareInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Class RouterMiddlewareInterface
