@@ -69,6 +69,7 @@ class RouteFactory
     {
         return $this->createRoute()
             ->addMethod(RouteMiddlewareInterface::METHOD_GET)
+            ->addMethod(RouteMiddlewareInterface::METHOD_HEAD)
             ->setPath($path)
             ->setMiddleware($middleware);
     }
